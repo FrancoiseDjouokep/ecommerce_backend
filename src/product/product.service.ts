@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Product } from '../../generated/prisma';
+
 import { FinalProductData } from './dto/create-product.dto/FinalProductData.dto';
 import { UpdateProductDto } from './dto/create-product.dto/update-product.dto';
 
@@ -9,13 +9,13 @@ export class ProductService {
   constructor(private prisma: PrismaService) {}
 
   // Accepte FinalProductData qui contient l'URL de l'image
-  async create(finalProductData: FinalProductData): Promise<Product> {
+  async create(finalProductData: FinalProductData) {
     return await this.prisma.product.create({
       data: finalProductData, // Contient maintenant l'image URL
     });
   }
 
-  async findAll(skip: number, take: number): Promise<Product[]> {
+  async findAll(skip: number, take: number) {
     return await this.prisma.product.findMany({
       skip: skip,
       take: take,
@@ -39,7 +39,7 @@ export class ProductService {
     });
   }
 
-  async remove(productId: number): Promise<Product> {
+  async remove(productId: number) {
     return await this.prisma.product.delete({
       where: {
         productId: productId,
