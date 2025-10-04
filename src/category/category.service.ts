@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { Category } from '../../generated/prisma';
+
 
 @Injectable()
 export class CategoryService {
@@ -9,7 +9,7 @@ export class CategoryService {
   constructor(private prisma: PrismaService) {} 
   //             ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
+  async create(createCategoryDto: CreateCategoryDto) {
     // Plus besoin de manipuler l'objet, car tous les champs sont obligatoires
     return await this.prisma.category.create({
       data: createCategoryDto, 
@@ -17,7 +17,7 @@ export class CategoryService {
   }
 
 
-  async findAll(): Promise<Category[]> {
+  async findAll() {
     // Récupère toutes les catégories (pour la liste déroulante)
     return await this.prisma.category.findMany({});
   }
