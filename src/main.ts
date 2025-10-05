@@ -68,7 +68,8 @@ async function bootstrap() {
     console.log('Superadmin déjà existant.');
   }
 
-  const port = process.env.PORT || process.env.APP_PORT || 3000;
+  const port = process.env.PORT || 3000;
+
   await app.listen(port);
   console.log(` Application is running on port ${port}`);
 
