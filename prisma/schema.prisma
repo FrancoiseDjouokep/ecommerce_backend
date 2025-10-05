@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -20,69 +14,58 @@ model User {
   password     String    @default("changeme")
   address      String
   isActive     Boolean   @default(false)
-  otpCode     String?
+  otpCode      String?
   otpExpiresAt DateTime?
-  role        String      @default("Client")
-
-  carts   Cart[]
-  orders  Order[]
+  role         String    @default("Client")
+  carts        Cart[]
+  orders       Order[]
 }
 
 model Product {
-  productId   Int       @id @default(autoincrement())
+  productId   Int        @id @default(autoincrement())
   name        String
   description String
   price       Float
   stock       Int
   image       String
-
   categoryId  Int
-  category    Category  @relation(fields: [categoryId], references: [categoryId])
-
   cartItems   CartItem[]
+  category    Category   @relation(fields: [categoryId], references: [categoryId])
 }
 
 model Category {
   categoryId  Int       @id @default(autoincrement())
   name        String
   description String
-
-  products Product[]
+  products    Product[]
 }
 
 model Cart {
-  cartId     Int        @id @default(autoincrement())
-  userId     Int
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-
-  user       User       @relation(fields: [userId], references: [userId])
-  items      CartItem[]
-  orders     Order[]    
+  cartId    Int        @id @default(autoincrement())
+  userId    Int
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [userId])
+  items     CartItem[]
+  orders    Order[]
 }
 
 model CartItem {
-  cartItemId Int      @id @default(autoincrement())
+  cartItemId Int     @id @default(autoincrement())
   cartId     Int
   productId  Int
   quantity   Int
-
-  cart    Cart    @relation(fields: [cartId], references: [cartId])
-  product Product @relation(fields: [productId], references: [productId])
+  cart       Cart    @relation(fields: [cartId], references: [cartId])
+  product    Product @relation(fields: [productId], references: [productId])
 }
-
 
 model Order {
-  orderId     Int       @id @default(autoincrement())
+  orderId     Int      @id @default(autoincrement())
   userId      Int
-  cartId      Int       
-  createdAt   DateTime  @default(now())
+  cartId      Int
+  createdAt   DateTime @default(now())
   status      String
   totalAmount Int
-
-  user     User     @relation(fields: [userId], references: [userId])
-  cart     Cart     @relation(fields: [cartId], references: [cartId]) 
+  cart        Cart     @relation(fields: [cartId], references: [cartId])
+  user        User     @relation(fields: [userId], references: [userId])
 }
-
-
-
