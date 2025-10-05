@@ -1,48 +1,46 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer'
-import { emailDto } from 'src/auth/dto/emailDto';
+import { Resend } from 'resend';
+
 @Injectable()
 export class MailerService {
-  constructor(private readonly configService: ConfigService) {}
+  private resend: Resend;
+  private sender: string;
 
-  private emailTransport() {
-    return nodemailer.createTransport({
-      host: this.configService.get<string>('EMAIL_HOST'),
-      port: this.configService.get<number>('EMAIL_PORT'),
-      secure: false,
-      auth: {
-        user: this.configService.get<string>('EMAIL_USER'),
-        pass: this.configService.get<string>('EMAIL_PASSWORD'),
-      },
-    });
+  constructor(private readonly configService: ConfigService) {
+    this.resend = new Resend(this.configService.get<string>('RESEND_API_KEY'));
+    this.sender = this.configService.get<string>('EMAIL_USER')!;
   }
 
- 
+  // Génération OTP
   private generateOtp(): string {
-    const randomInteger = Math.floor(Math.random() * 1000000); 
-    const code = randomInteger.toString().padStart(6, '0');    
-    return code;
- }
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    return otp;
+  }
 
-
-  async sendSignupEmail(useremail: string) {
-    const otp = this.generateOtp(); 
-
-    const transport = this.emailTransport();
-    const options: nodemailer.SendMailOptions = {
-      from: this.configService.get<string>('EMAIL_USER'),
-      to: useremail,
-      subject: 'Confirme ton email',
-      text: `Merci de t'être inscrit ! Voici ton code de confirmation : ${otp}`,
-    };
+  // Envoi de l'email de confirmation
+  async sendSignupEmail(userEmail: string): Promise<string> {
+    const otp = this.generateOtp();
 
     try {
-      await transport.sendMail(options);
-      return otp; 
+      await this.resend.emails.send({
+        from: `E-commerce App <${this.sender}>`,
+        to: userEmail,
+        subject: 'Confirmation de votre inscription',
+        html: `
+          <h2>Bienvenue !</h2>
+          <p>Merci de vous être inscrit sur notre plateforme.</p>
+          <p>Voici votre code de confirmation :</p>
+          <h1 style="color: #007bff;">${otp}</h1>
+          <p>Ce code expirera dans 10 minutes.</p>
+        `,
+      });
+
+      console.log(`✅ Email envoyé avec succès à ${userEmail}`);
+      return otp;
     } catch (error) {
-      console.log('Erreur en envoyant l’email :', error);
-      throw error;
+      console.error('Erreur lors de l’envoi de l’email :', error);
+      throw new Error('Impossible d’envoyer l’email.');
     }
   }
 }
