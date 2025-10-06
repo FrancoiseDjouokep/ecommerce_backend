@@ -1,27 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import sgMail from '@sendgrid/mail';
 
 @Injectable()
 export class MailerService {
-  private sender: string;
-
   constructor(private readonly configService: ConfigService) {
-    const apiKey = this.configService.get<string>('SENDGRID_API_KEY')!;
-    this.sender = this.configService.get<string>('EMAIL_SENDER')!;
+    const apiKey = this.configService.get<string>('SENDGRID_API_KEY');
+    if (!apiKey) {
+      throw new Error('SENDGRID_API_KEY is not defined in environment variables');
+    }
     sgMail.setApiKey(apiKey);
   }
 
+  // Génération OTP
   private generateOtp(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  async sendSignupEmail(userEmail: string): Promise<string> {
+  // Envoi de l'email de confirmation
+  async sendSignupEmail(toEmail: string): Promise<string> {
     const otp = this.generateOtp();
+    const fromEmail = this.configService.get<string>('EMAIL_USER');
+
+    if (!fromEmail) {
+      throw new Error('EMAIL_USER is not defined in environment variables');
+    }
 
     const msg = {
-      to: userEmail,
-      from: this.sender,
+      to: toEmail,
+      from: { email: fromEmail, name: 'E-commerce App' },
       subject: 'Confirmation de votre inscription',
       html: `
         <h2>Bienvenue !</h2>
@@ -34,11 +41,11 @@ export class MailerService {
 
     try {
       await sgMail.send(msg);
-      console.log(`Email envoyé avec succès à ${userEmail}`);
+      console.log(`Email envoyé avec succès à ${toEmail}`);
       return otp;
     } catch (error) {
-      console.error('Erreur lors de l’envoi de l’email :', error.response?.body || error);
-      throw new Error('Impossible d’envoyer l’email.');
+      console.error('Erreur lors de l’envoi de l’email :', error);
+      throw new InternalServerErrorException('Impossible d’envoyer l’email.');
     }
   }
 }
